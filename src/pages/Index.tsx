@@ -15,6 +15,14 @@ export type UserProfile = {
   householdSize: number;
   pets: boolean;
   socialSupport: string;
+  floorPlan?: string;
+  foodStock?: string;
+  medications?: string;
+  emergencyContacts?: string;
+  citizenApp?: string;
+  concernedDisasters?: string[];
+  biggestWorry?: string;
+  reminderPreference?: string;
 };
 
 const Index = () => {

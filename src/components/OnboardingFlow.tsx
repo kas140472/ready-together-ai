@@ -4,35 +4,44 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { UserProfile } from '@/pages/Index';
 
 interface OnboardingFlowProps {
   onComplete: (profile: UserProfile) => void;
 }
 
-type OnboardingStep = 'intro' | 'basic' | 'housing' | 'mobility' | 'dietary' | 'support' | 'complete';
-
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('intro');
+  const [currentStep, setCurrentStep] = useState(0);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     dietary: [],
+    householdSize: 1,
+    pets: false,
   });
 
+  const steps = [
+    'Basic Info',
+    'Living Situation',
+    'Transportation',
+    'Diet & Health',
+    'Connections',
+    'Emergency Priorities'
+  ];
+
   const handleNext = () => {
-    const stepOrder: OnboardingStep[] = ['intro', 'basic', 'housing', 'mobility', 'dietary', 'support', 'complete'];
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex < stepOrder.length - 1) {
-      setCurrentStep(stepOrder[currentIndex + 1]);
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      onComplete(profile as UserProfile);
     }
   };
 
-  const handleComplete = () => {
-    if (profile.name && profile.location && profile.housingType && profile.transportation && 
-        profile.mobility && profile.householdSize !== undefined && profile.pets !== undefined && 
-        profile.socialSupport) {
-      onComplete(profile as UserProfile);
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -40,355 +49,410 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     setProfile(prev => ({ ...prev, ...updates }));
   };
 
-  const toggleDietary = (item: string) => {
-    const current = profile.dietary || [];
-    if (current.includes(item)) {
-      updateProfile({ dietary: current.filter(d => d !== item) });
-    } else {
-      updateProfile({ dietary: [...current, item] });
-    }
-  };
-
   const renderStep = () => {
     switch (currentStep) {
-      case 'intro':
+      case 0:
         return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-sage-200 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-sage-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h2 className="text-3xl font-bold text-foreground">Let's get to know you</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                I'm here to help create a preparedness plan that works for your unique situation. 
-                This isn't about judgment or perfection—it's about meeting you where you are and 
-                helping you feel more secure.
-              </p>
-              <p className="text-base text-muted-foreground">
-                Your answers help me understand what matters most for your safety and peace of mind.
-              </p>
-              <Button 
-                onClick={handleNext}
-                className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 rounded-full"
-              >
-                I'm ready to begin
-              </Button>
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Let's get to know you</h2>
+              <p className="text-muted-foreground">This helps us create your personalized disaster plan</p>
             </div>
-          </Card>
-        );
-
-      case 'basic':
-        return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Tell me about yourself</h2>
-                <p className="text-muted-foreground">What should I call you, and where do you live?</p>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-base font-medium">What's your name?</Label>
-                  <Input
-                    id="name"
-                    value={profile.name || ''}
-                    onChange={(e) => updateProfile({ name: e.target.value })}
-                    placeholder="How would you like me to address you?"
-                    className="mt-2 gentle-focus"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="location" className="text-base font-medium">Where are you located?</Label>
-                  <Input
-                    id="location"
-                    value={profile.location || ''}
-                    onChange={(e) => updateProfile({ location: e.target.value })}
-                    placeholder="City, State (helps me understand local risks)"
-                    className="mt-2 gentle-focus"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="household" className="text-base font-medium">How many people live with you?</Label>
-                  <Input
-                    id="household"
-                    type="number"
-                    min="1"
-                    value={profile.householdSize || ''}
-                    onChange={(e) => updateProfile({ householdSize: parseInt(e.target.value) })}
-                    placeholder="Including yourself"
-                    className="mt-2 gentle-focus"
-                  />
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleNext}
-                disabled={!profile.name || !profile.location || !profile.householdSize}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white"
-              >
-                Continue
-              </Button>
-            </div>
-          </Card>
-        );
-
-      case 'housing':
-        return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Your living situation</h2>
-                <p className="text-muted-foreground">This helps me understand your evacuation options and storage space</p>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium mb-3 block">What type of housing do you live in?</Label>
-                  <RadioGroup 
-                    value={profile.housingType} 
-                    onValueChange={(value) => updateProfile({ housingType: value })}
-                    className="space-y-3"
-                  >
-                    {[
-                      { value: 'house', label: 'House with yard' },
-                      { value: 'apartment', label: 'Apartment/Condo' },
-                      { value: 'mobile_home', label: 'Mobile home' },
-                      { value: 'shared_housing', label: 'Shared housing/Room rental' },
-                      { value: 'other', label: 'Other housing situation' }
-                    ].map(option => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="font-normal cursor-pointer">
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base font-medium mb-3 block">Do you have pets?</Label>
-                  <RadioGroup 
-                    value={profile.pets?.toString()} 
-                    onValueChange={(value) => updateProfile({ pets: value === 'true' })}
-                    className="flex space-x-6"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="true" id="pets-yes" />
-                      <Label htmlFor="pets-yes" className="font-normal cursor-pointer">Yes</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="false" id="pets-no" />
-                      <Label htmlFor="pets-no" className="font-normal cursor-pointer">No</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleNext}
-                disabled={!profile.housingType || profile.pets === undefined}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white"
-              >
-                Continue
-              </Button>
-            </div>
-          </Card>
-        );
-
-      case 'mobility':
-        return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Getting around</h2>
-                <p className="text-muted-foreground">Understanding your transportation and mobility helps me plan better evacuation options</p>
-              </div>
-              
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-base font-medium mb-3 block">What transportation do you typically have access to?</Label>
-                  <RadioGroup 
-                    value={profile.transportation} 
-                    onValueChange={(value) => updateProfile({ transportation: value })}
-                    className="space-y-3"
-                  >
-                    {[
-                      { value: 'own_car', label: 'Own car/vehicle' },
-                      { value: 'shared_car', label: 'Shared car (family/friends)' },
-                      { value: 'public_transport', label: 'Public transportation' },
-                      { value: 'bike_walk', label: 'Bike/Walking only' },
-                      { value: 'limited', label: 'Very limited transportation options' }
-                    ].map(option => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="font-normal cursor-pointer">
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base font-medium mb-3 block">Do you have any mobility considerations?</Label>
-                  <RadioGroup 
-                    value={profile.mobility} 
-                    onValueChange={(value) => updateProfile({ mobility: value })}
-                    className="space-y-3"
-                  >
-                    {[
-                      { value: 'none', label: 'No mobility limitations' },
-                      { value: 'some_difficulty', label: 'Some difficulty with stairs/walking' },
-                      { value: 'mobility_aid', label: 'Use mobility aid (wheelchair, walker, etc.)' },
-                      { value: 'significant', label: 'Significant mobility limitations' }
-                    ].map(option => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="font-normal cursor-pointer">
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleNext}
-                disabled={!profile.transportation || !profile.mobility}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white"
-              >
-                Continue
-              </Button>
-            </div>
-          </Card>
-        );
-
-      case 'dietary':
-        return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Food and dietary needs</h2>
-                <p className="text-muted-foreground">This helps me suggest emergency food supplies that work for you</p>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">What should we call you?</Label>
+                <Input
+                  id="name"
+                  value={profile.name || ''}
+                  onChange={(e) => updateProfile({ name: e.target.value })}
+                  placeholder="Your first name"
+                  className="gentle-focus"
+                />
               </div>
               
               <div>
-                <Label className="text-base font-medium mb-4 block">
-                  Do any of these apply to your household's dietary needs? (Select all that apply)
-                </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    'Vegetarian',
-                    'Vegan',
-                    'Halal',
-                    'Kosher',
-                    'Gluten-free',
-                    'Dairy-free',
-                    'Diabetic-friendly',
-                    'Baby formula/food needed'
-                  ].map((dietary) => (
-                    <div key={dietary} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={dietary}
-                        checked={(profile.dietary || []).includes(dietary)}
-                        onCheckedChange={() => toggleDietary(dietary)}
-                      />
-                      <Label htmlFor={dietary} className="font-normal cursor-pointer">
-                        {dietary}
-                      </Label>
-                    </div>
-                  ))}
+                <Label htmlFor="location">Where do you live?</Label>
+                <Input
+                  id="location"
+                  value={profile.location || ''}
+                  onChange={(e) => updateProfile({ location: e.target.value })}
+                  placeholder="City, State or ZIP code"
+                  className="gentle-focus"
+                />
+              </div>
+
+              <div>
+                <Label>How many people live with you? (including yourself)</Label>
+                <div className="px-3 py-2">
+                  <Slider
+                    value={[profile.householdSize || 1]}
+                    onValueChange={(value) => updateProfile({ householdSize: value[0] })}
+                    max={10}
+                    min={1}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                    <span>1 person</span>
+                    <span className="font-medium">{profile.householdSize || 1} people</span>
+                    <span>10+ people</span>
+                  </div>
                 </div>
               </div>
-
-              <Button 
-                onClick={handleNext}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white"
-              >
-                Continue
-              </Button>
             </div>
-          </Card>
+          </div>
         );
 
-      case 'support':
+      case 1:
         return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Your support network</h2>
-                <p className="text-muted-foreground">Community connections are vital for resilience and mutual aid</p>
-              </div>
-              
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Your living situation</h2>
+              <p className="text-muted-foreground">This helps us plan evacuation routes and safety measures</p>
+            </div>
+            
+            <div className="space-y-4">
               <div>
-                <Label className="text-base font-medium mb-3 block">
-                  How would you describe your local support network?
-                </Label>
-                <RadioGroup 
-                  value={profile.socialSupport} 
-                  onValueChange={(value) => updateProfile({ socialSupport: value })}
-                  className="space-y-3"
+                <Label>What type of home do you live in?</Label>
+                <RadioGroup
+                  value={profile.housingType || ''}
+                  onValueChange={(value) => updateProfile({ housingType: value })}
+                  className="mt-2"
                 >
-                  {[
-                    { value: 'strong', label: 'Strong - I have close neighbors/friends nearby who I can count on' },
-                    { value: 'some', label: 'Some - I know a few people in my area but we\'re not very close' },
-                    { value: 'limited', label: 'Limited - I don\'t know many people in my immediate area' },
-                    { value: 'isolated', label: 'Isolated - I don\'t have strong local connections right now' }
-                  ].map(option => (
-                    <div key={option.value} className="flex items-start space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
-                      <Label htmlFor={option.value} className="font-normal cursor-pointer leading-relaxed">
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="apartment" id="apartment" />
+                    <Label htmlFor="apartment">Apartment/Condo</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="house" id="house" />
+                    <Label htmlFor="house">Single-family house</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mobile" id="mobile" />
+                    <Label htmlFor="mobile">Mobile home/RV</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="shared" id="shared" />
+                    <Label htmlFor="shared">Shared housing/Room rental</Label>
+                  </div>
                 </RadioGroup>
               </div>
 
-              <Button 
-                onClick={handleNext}
-                disabled={!profile.socialSupport}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white"
-              >
-                Continue
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="pets"
+                  checked={profile.pets || false}
+                  onCheckedChange={(checked) => updateProfile({ pets: checked as boolean })}
+                />
+                <Label htmlFor="pets">I have pets that would need to evacuate with me</Label>
+              </div>
+
+              <div>
+                <Label htmlFor="floorplan">Describe your home layout (optional)</Label>
+                <Textarea
+                  id="floorplan"
+                  value={profile.floorPlan || ''}
+                  onChange={(e) => updateProfile({ floorPlan: e.target.value })}
+                  placeholder="e.g., 2-bedroom apartment on 3rd floor, main exit through front door, fire escape on back balcony..."
+                  className="gentle-focus"
+                />
+              </div>
             </div>
-          </Card>
+          </div>
         );
 
-      case 'complete':
+      case 2:
         return (
-          <Card className="p-8 max-w-2xl mx-auto warm-shadow border-none bg-white/90 backdrop-blur-sm">
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-terracotta-200 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-terracotta-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h2 className="text-3xl font-bold text-foreground">Thank you, {profile.name}</h2>
-              <div className="space-y-4">
-                <p className="text-lg text-muted-foreground">
-                  I now have what I need to create your personalized preparedness plan. 
-                </p>
-                <p className="text-base text-muted-foreground">
-                  Remember: this is about progress, not perfection. We'll build your resilience step by step, 
-                  in a way that fits your life and resources.
-                </p>
-              </div>
-              <Button 
-                onClick={handleComplete}
-                className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-8 py-3 rounded-full text-lg"
-              >
-                See My Preparedness Plan
-              </Button>
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">How you get around</h2>
+              <p className="text-muted-foreground">Transportation affects your evacuation options</p>
             </div>
-          </Card>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>What's your primary transportation?</Label>
+                <RadioGroup
+                  value={profile.transportation || ''}
+                  onValueChange={(value) => updateProfile({ transportation: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="own-car" id="own-car" />
+                    <Label htmlFor="own-car">I have my own car</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="public-transit" id="public-transit" />
+                    <Label htmlFor="public-transit">Public transportation</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="rideshare" id="rideshare" />
+                    <Label htmlFor="rideshare">Rideshare/Taxi</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="bike-walk" id="bike-walk" />
+                    <Label htmlFor="bike-walk">Bike/Walking</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="rely-others" id="rely-others" />
+                    <Label htmlFor="rely-others">Rely on friends/family</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label>Mobility considerations</Label>
+                <RadioGroup
+                  value={profile.mobility || ''}
+                  onValueChange={(value) => updateProfile({ mobility: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id="none" />
+                    <Label htmlFor="none">No mobility limitations</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="some" id="some" />
+                    <Label htmlFor="some">Some difficulty walking/stairs</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="wheelchair" id="wheelchair" />
+                    <Label htmlFor="wheelchair">Use wheelchair/mobility aid</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="assistance" id="assistance" />
+                    <Label htmlFor="assistance">Need assistance to evacuate</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Diet and health needs</h2>
+              <p className="text-muted-foreground">Helps us plan your emergency food and medical supplies</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>Dietary preferences/restrictions (check all that apply)</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {[
+                    'Vegetarian', 'Vegan', 'Kosher', 'Halal', 
+                    'Gluten-free', 'Dairy-free', 'Nut allergies', 'Diabetic'
+                  ].map((diet) => (
+                    <div key={diet} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={diet}
+                        checked={profile.dietary?.includes(diet) || false}
+                        onCheckedChange={(checked) => {
+                          const current = profile.dietary || [];
+                          if (checked) {
+                            updateProfile({ dietary: [...current, diet] });
+                          } else {
+                            updateProfile({ dietary: current.filter(d => d !== diet) });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={diet} className="text-sm">{diet}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>How many days of food do you typically keep at home?</Label>
+                <RadioGroup
+                  value={profile.foodStock || ''}
+                  onValueChange={(value) => updateProfile({ foodStock: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1-2-days" id="1-2-days" />
+                    <Label htmlFor="1-2-days">1-2 days (eat out often)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="3-5-days" id="3-5-days" />
+                    <Label htmlFor="3-5-days">3-5 days (some cooking)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1-2-weeks" id="1-2-weeks" />
+                    <Label htmlFor="1-2-weeks">1-2 weeks (regular grocery trips)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="month-plus" id="month-plus" />
+                    <Label htmlFor="month-plus">3+ weeks (bulk shopper)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label htmlFor="medications">Any critical medications or medical equipment?</Label>
+                <Textarea
+                  id="medications"
+                  value={profile.medications || ''}
+                  onChange={(e) => updateProfile({ medications: e.target.value })}
+                  placeholder="e.g., insulin, inhaler, blood pressure medication, CPAP machine..."
+                  className="gentle-focus"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Your support network</h2>
+              <p className="text-muted-foreground">Building connections makes everyone safer</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>How would you describe your local connections?</Label>
+                <RadioGroup
+                  value={profile.socialSupport || ''}
+                  onValueChange={(value) => updateProfile({ socialSupport: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="strong" id="strong" />
+                    <Label htmlFor="strong">Strong - I know my neighbors and have local friends/family</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="some" id="some" />
+                    <Label htmlFor="some">Some - I know a few people in the area</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="limited" id="limited" />
+                    <Label htmlFor="limited">Limited - I'm newer here or keep to myself</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="isolated" id="isolated" />
+                    <Label htmlFor="isolated">I feel pretty isolated in my community</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label htmlFor="emergency-contacts">Who would you contact in an emergency?</Label>
+                <Textarea
+                  id="emergency-contacts"
+                  value={profile.emergencyContacts || ''}
+                  onChange={(e) => updateProfile({ emergencyContacts: e.target.value })}
+                  placeholder="Family members, close friends, neighbors you trust..."
+                  className="gentle-focus"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="citizen-app">Do you use the Citizen app or similar safety apps?</Label>
+                <RadioGroup
+                  value={profile.citizenApp || ''}
+                  onValueChange={(value) => updateProfile({ citizenApp: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes-active" id="yes-active" />
+                    <Label htmlFor="yes-active">Yes, I use it regularly</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes-occasional" id="yes-occasional" />
+                    <Label htmlFor="yes-occasional">Yes, but only occasionally</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no-interested" id="no-interested" />
+                    <Label htmlFor="no-interested">No, but I'm interested</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no-not-interested" id="no-not-interested" />
+                    <Label htmlFor="no-not-interested">No, not interested</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">What worries you most?</h2>
+              <p className="text-muted-foreground">Let's prioritize your preparations</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>What disasters are you most concerned about in your area?</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {[
+                    'Wildfire', 'Earthquake', 'Flood', 'Hurricane', 
+                    'Power outage', 'Water shortage', 'Civil unrest', 'Other'
+                  ].map((disaster) => (
+                    <div key={disaster} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={disaster}
+                        checked={profile.concernedDisasters?.includes(disaster) || false}
+                        onCheckedChange={(checked) => {
+                          const current = profile.concernedDisasters || [];
+                          if (checked) {
+                            updateProfile({ concernedDisasters: [...current, disaster] });
+                          } else {
+                            updateProfile({ concernedDisasters: current.filter(d => d !== disaster) });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={disaster} className="text-sm">{disaster}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="biggest-worry">What's your biggest worry about being prepared?</Label>
+                <Textarea
+                  id="biggest-worry"
+                  value={profile.biggestWorry || ''}
+                  onChange={(e) => updateProfile({ biggestWorry: e.target.value })}
+                  placeholder="e.g., I don't know where to start, it's too expensive, I live alone, I don't have storage space..."
+                  className="gentle-focus"
+                />
+              </div>
+
+              <div>
+                <Label>How do you prefer to receive reminders?</Label>
+                <RadioGroup
+                  value={profile.reminderPreference || ''}
+                  onValueChange={(value) => updateProfile({ reminderPreference: value })}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gentle" id="gentle" />
+                    <Label htmlFor="gentle">Gentle nudges - don't stress me out</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="regular" id="regular" />
+                    <Label htmlFor="regular">Regular check-ins</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="urgent" id="urgent" />
+                    <Label htmlFor="urgent">Only when there's immediate risk</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="minimal" id="minimal" />
+                    <Label htmlFor="minimal">Minimal - I'll check in myself</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </div>
         );
 
       default:
@@ -398,8 +462,47 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-4xl animate-fade-in">
-        {renderStep()}
+      <div className="max-w-2xl w-full">
+        {/* Progress indicator */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-sm text-muted-foreground">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <span className="text-sm font-medium text-primary">
+              {steps[currentStep]}
+            </span>
+          </div>
+          <div className="w-full bg-muted h-2 rounded-full">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Step content */}
+        <Card className="p-8 mb-6 warm-shadow border-none bg-white/80 backdrop-blur-sm">
+          {renderStep()}
+        </Card>
+
+        {/* Navigation buttons */}
+        <div className="flex justify-between">
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            disabled={currentStep === 0}
+            className="px-6"
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleNext}
+            className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-6"
+          >
+            {currentStep === steps.length - 1 ? "Complete Setup" : "Continue"}
+          </Button>
+        </div>
       </div>
     </div>
   );
