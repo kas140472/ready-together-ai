@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          biggest_worry: string | null
+          citizen_app: string | null
+          concerned_disasters: string[] | null
+          created_at: string
+          dietary: string[] | null
+          emergency_contacts: string | null
+          floor_plan: string | null
+          food_stock: string | null
+          household_size: number
+          housing_type: string
+          id: string
+          location: string
+          medications: string | null
+          mobility: string
+          name: string
+          pets: boolean | null
+          reminder_preference: string | null
+          social_support: string
+          transportation: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          biggest_worry?: string | null
+          citizen_app?: string | null
+          concerned_disasters?: string[] | null
+          created_at?: string
+          dietary?: string[] | null
+          emergency_contacts?: string | null
+          floor_plan?: string | null
+          food_stock?: string | null
+          household_size?: number
+          housing_type: string
+          id?: string
+          location: string
+          medications?: string | null
+          mobility: string
+          name: string
+          pets?: boolean | null
+          reminder_preference?: string | null
+          social_support: string
+          transportation: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          biggest_worry?: string | null
+          citizen_app?: string | null
+          concerned_disasters?: string[] | null
+          created_at?: string
+          dietary?: string[] | null
+          emergency_contacts?: string | null
+          floor_plan?: string | null
+          food_stock?: string | null
+          household_size?: number
+          housing_type?: string
+          id?: string
+          location?: string
+          medications?: string | null
+          mobility?: string
+          name?: string
+          pets?: boolean | null
+          reminder_preference?: string | null
+          social_support?: string
+          transportation?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
